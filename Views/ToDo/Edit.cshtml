@@ -1,0 +1,36 @@
+﻿@using ToDoList.Models
+@model ToDoList.Models.Todo
+
+<form asp-action="Edit" method="post">
+    <div>
+        <label>Title:</label>
+        <input asp-for="Title" />
+    </div>
+
+    <div>
+        <label>Completed:</label>
+        <input asp-for="IsCompleted" type="checkbox" />
+    </div>
+
+    <div>
+        <label>Category:</label>
+        <select asp-for="Category">
+            @foreach (var cat in Enum.GetValues(typeof(TodoCategory)))
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
+
+    <div>
+        <label>Priority:</label>
+        <select asp-for="Priority">
+            @foreach (var prio in Enum.GetValues(typeof(TodoPriority)))
+            {
+                <option value="@((int)prio)">@prio</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit">save</button>
+</form>

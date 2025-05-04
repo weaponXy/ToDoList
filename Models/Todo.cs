@@ -3,6 +3,20 @@ using Postgrest.Attributes;
 
 namespace ToDoList.Models
 {
+    public enum TodoCategory
+    {
+        Work,
+        School,
+        Personal
+    }
+
+    public enum TodoPriority
+    {
+        Low = 1,
+        Medium = 2,
+        High = 3
+    }
+
     [Table("todoitems")]
     public class Todo : BaseModel
     {

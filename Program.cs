@@ -1,16 +1,22 @@
 using Supabase;
 using Supabase.Interfaces;
 using ToDoList.Models;
+using DotNetEnv;
+using static Postgrest.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
+DotNetEnv.Env.Load();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllersWithViews()
+    .AddRazorRuntimeCompilation();
 
 builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(
-        builder.Configuration["SupabaseUrl"],
-        builder.Configuration["SupabaseKey"],
+        Environment.GetEnvironmentVariable("SUPABASE_URL"),
+        Environment.GetEnvironmentVariable("SUPABASE_KEY"),
         new SupabaseOptions
         {
             AutoRefreshToken = true,
@@ -30,15 +36,51 @@ else
     app.UseHsts();
 }
 
-//app.UseHttpsRedirection();
-//app.UseRouting();
-//app.UseAuthorization();
-//app.MapControllers();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
 
-// Sample home route
-app.MapGet("/", () => "ToDoList API is running!");
+app.MapControllerRoute(
+    name: "default",
+    pattern:"{controller=ToDo}/{action=Index}/{id?}");
 
-// API Endpoints
+app.MapGet("/todos", async (
+    string? category,
+    string? priority,
+    string? sortBy,
+    Supabase.Client client) =>
+{
+    var query = client.From<Todo>();
+
+    if (!string.IsNullOrWhiteSpace(category))
+        query.Filter("category", Operator.Equals, category);
+
+    if (!string.IsNullOrWhiteSpace(priority))
+        query.Filter("priority", Operator.Equals, priority);
+
+    if (!string.IsNullOrWhiteSpace(sortBy))
+    {
+        if (sortBy.Equals("category", StringComparison.OrdinalIgnoreCase))
+            query.Order("category", Ordering.Ascending);
+        else if (sortBy.Equals("priority", StringComparison.OrdinalIgnoreCase))
+            query.Order("priority", Ordering.Ascending);
+    }
+
+    var response = await query.Get();
+
+    var results = response.Models.Select(todo => new ToDoResponse
+    {
+        Id = todo.Id,
+        Title = todo.Title,
+        IsCompleted = todo.IsCompleted,
+        Category = todo.Category,
+        Priority = todo.Priority
+    });
+
+    return Results.Ok(results);
+});
+
 app.MapPost("/todos", async (
     CreateToDoRequest request,
     Supabase.Client client) =>

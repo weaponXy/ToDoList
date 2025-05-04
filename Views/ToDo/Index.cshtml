@@ -1,0 +1,69 @@
+﻿@model List<ToDoList.Models.Todo>
+
+@{
+    ViewData["Title"] = "To-Do List";
+}
+
+<h2>To-Do List</h2>
+<p><a href="/ToDo/Create">Create New To-Do</a></p>
+<form method="get" asp-action="Index" class="mb-3">
+    <label>Category:</label>
+    <select name="category">
+        <option value="">All</option>
+        <option value="Work" selected="@(Context.Request.Query["category"] == "Work" ? "selected" : "")">Work</option>
+        <option value="Personal" selected="@(Context.Request.Query["category"] == "Personal" ? "selected" : "")">Personal</option>
+        <option value="School" selected="@(Context.Request.Query["category"] == "School" ? "selected" : "")">School</option>
+    </select>
+
+    <label>Priority:</label>
+    <select name="priority">
+        <option value="">All</option>
+        <option value="Low" selected="@(Context.Request.Query["priority"] == "Low" ? "selected" : "")">Low</option>
+        <option value="Medium" selected="@(Context.Request.Query["priority"] == "Medium" ? "selected" : "")">Medium</option>
+        <option value="High" selected="@(Context.Request.Query["priority"] == "High" ? "selected" : "")">High</option>
+    </select>
+
+    <label>Sort By:</label>
+    <select name="sortBy">
+        <option value="">None</option>
+        <option value="category" selected="@(Context.Request.Query["sortBy"] == "category" ? "selected" : "")">Category</option>
+        <option value="priority" selected="@(Context.Request.Query["sortBy"] == "priority" ? "selected" : "")">Priority</option>
+    </select>
+
+    <button type="submit">Apply</button>
+</form>
+@functions {
+    string GetPriorityLabel(int priority)
+    {
+        return priority switch
+        {
+            1 => "Low",
+            2 => "Medium",
+            3 => "High",
+            _ => "Unknown"
+        };
+    }
+}
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Completed</th>
+            <th>Category</th>
+            <th>Priority</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.IsCompleted</td>
+                <td>@item.Category</td>
+                <td>@GetPriorityLabel(item.Priority)</td>
+                <td><a asp-action="Edit" asp-route-id="@item.Id">Edit</a></td>
+                <td><a asp-action="Delete" asp-route-id="@item.Id">Delete</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
